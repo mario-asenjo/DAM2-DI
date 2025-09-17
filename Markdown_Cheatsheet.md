@@ -80,6 +80,40 @@ Este comando inicializa un repositorio de git: `git init` ¿Te gusta?
 [!Gatos](https://www.google.es)
 [!Enlace a foto](https://www.google.es)
 
+---
 ## Menciones a personas `Github`
 
 @luisgasa-uax
+
+---
+## Pie de página
+[^1] Pie 1 de pagina.
+[^nota] También con palabra
+
+---
+## Tablas
+| Campo 1 | Campo 2 | Campo 3 |
+| --- | --- | --- |
+| Dato 1  | Dato 2  | Dato 3  |
+
+---
+## Tabla alineada
+| Alin. Izq | Alin. Centro | Alin. Dch |
+| :--- | :---: | ---: |
+| Dato 1  | Dato 2  | Dato 3  |
+
+---
+## Desplegables
+<details>
+  <summary>Este es el resumen de la sección desplegable.</summary>
+  Well, the way they make shows is, they make one show. That show's called a pilot. Then they show that show to the people who make shows, and on the strength of that one show they decide if they're going to make more shows. Some pilots get picked and become television programs. Some don't, become nothing. She starred in one of the ones that became nothing.
+</details>
+
+---
+<details>
+  <summary>¿Cual es la sintaxis python para imprimir por pantalla?</summary>
+  
+```python
+  print("TEXTO")
+```
+</details>
