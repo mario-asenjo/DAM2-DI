@@ -3,10 +3,12 @@ from modelo.PlantaException import PlantaException
 
 class ABCPlanta(ABC):
     def __init__(self, nombre:str=None, altura:float=None, precio:float=None):
-        if nombre is None or altura is None or precio is None:
-            raise PlantaException("No se pueden crear plantas sin nombre, altura o precio.")
-        if (not isinstance(nombre, str) or not isinstance(altura, float) or not isinstance(precio, float)):
-            raise PlantaException("No se pueden crear plantas con tipos de datos incorrectos.")
+        try:
+            self.validarNombre(nombre)
+            self.validarAltura(altura)
+            self.validarPrecio(precio)
+        except PlantaException as e:
+            raise PlantaException(f"Error al crear planta: {e}")
         super().__init__()
         self.nombre = nombre
         self.altura = altura
@@ -35,13 +37,23 @@ class ABCPlanta(ABC):
     def getDescripcion(self):
         pass
 
-    def validarAltura(altura:float):
+    def validarNombre(self, nombre:str):
+        if not nombre:
+            raise PlantaException("El nombre no puede estar vacío.")
+        if not isinstance(nombre, str):
+            raise PlantaException("El nombre debe ser una cadena de texto.")
+
+    def validarAltura(self, altura:float):
+            if not altura:
+                raise PlantaException("La altura no puede estar vacía.")
             if not isinstance(altura, float):
                 raise PlantaException("La altura debe ser un valor decimal.")
             if altura < 5.0 or altura > 300.0:
                 raise PlantaException("La altura debe estar entre 5.0 y 300.0 cm.")
             
-    def validarPrecio(precio:float):
+    def validarPrecio(self, precio:float):
+            if not precio:
+                raise PlantaException("El precio no puede estar vacío.")
             if not isinstance(precio, float):
                 raise PlantaException("El precio debe ser un valor decimal.")
             if precio < 0.0:

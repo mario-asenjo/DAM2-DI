@@ -1,25 +1,26 @@
 from modelo.Planta import ABCPlanta
+
 class ViveroInterface:
-    def agregarCactus(nombre:str, altura:float, precio:float, tieneEspinas:bool) -> None:
+    def agregarCactus(self, nombre:str, altura:float, precio:float, tieneEspinas:bool) -> None:
         pass
 
-    def agregarFlor(nombre:str, altura:float, precio:float, color:str) -> None:
+    def agregarFlor(self, nombre:str, altura:float, precio:float, color:str) -> None:
         pass
 
-    def buscarPlanta(nombre:str) -> ABCPlanta:
+    def buscarPlanta(self, nombre:str) -> ABCPlanta | None:
         pass
 
-    def modificarPrecioPlanta(nombre:str, nuevoPrecio:float) -> ABCPlanta:
+    def modificarPrecioPlanta(self, nombre:str, nuevoPrecio:float) -> ABCPlanta | None:
         pass
 
-    def eliminarPrimeraPlantaConNombre(nombre:str) -> ABCPlanta:
+    def eliminarPrimeraPlantaConNombre(self, nombre:str) -> ABCPlanta | None:
         pass
 
-    def listarPlantas() -> list[ABCPlanta]:
+    def listarPlantas(self) -> list[ABCPlanta]:
         pass
 
-    def buscarPorAlturaEntre(minAltura:float, maxAltura:float) -> list[ABCPlanta]:
+    def buscarPorAlturaEntre(self, minAltura:float, maxAltura:float) -> list[ABCPlanta]:
         pass
 
-    def buscarPorPrecioMenorA(precio:float) -> list[ABCPlanta]:
+    def buscarPorPrecioMenorA(self, precio:float) -> list[ABCPlanta]:
         pass
