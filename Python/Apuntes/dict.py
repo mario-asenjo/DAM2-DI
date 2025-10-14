@@ -13,3 +13,12 @@ for key in personas.keys():
 
 for key, value in personas.items():
     print(key, value)
+
+for key in personas:
+    print(key, personas[key])
+
+mitupla = tuple(personas.items())
+print(mitupla)
+
+mitupla = mitupla + (("11111111H","Juana García"),)
+print(mitupla)
