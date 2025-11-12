@@ -10,7 +10,7 @@ class Tablero:
     def __init__(self, n: int, semilla: int | None = None) -> None:
         if n % 2 != 0:
             # Para un N×N con parejas perfectas, N debe ser par (N*N es par).
-            # (Si prefieres permitir N impar, haríamos un hueco/comodín.)
+            # (Si preferimos permitir N impar, haríamos un hueco/comodín.)
             raise ValueError("El tamaño N debe ser par para formar parejas exactas.")
         self.n = n
         self._cartas: List[Carta] = self._generar_cartas(n, semilla)

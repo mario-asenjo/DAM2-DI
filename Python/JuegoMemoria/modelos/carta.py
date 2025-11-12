@@ -28,3 +28,4 @@ class Carta:
     def emparejar(self) -> None:
         # Marcar como resuelta
         self.estado = EstadoCarta.EMPAREJADA
+        
