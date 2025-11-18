@@ -25,7 +25,7 @@ class UIBridge(QObject):
     # Slots (Qt) → publican Intents
     def _on_nueva_partida(self) -> None:
         # Por ahora, tamaño fijo (p. ej. 4). Más adelante lo leeremos de Preferencias/QSettings.
-        self.bus.publish(NuevaPartidaIntent(n=6))
+        self.bus.publish(NuevaPartidaIntent(n=4))
 
     def _on_preferencias(self) -> None:
         self.bus.publish(AbrirPreferenciasIntent())
