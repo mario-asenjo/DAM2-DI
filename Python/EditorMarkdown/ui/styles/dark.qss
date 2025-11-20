@@ -1,0 +1,58 @@
+/* Fondo de la ventana: usa la paleta; no forzamos aquí */
+
+/* Editor (objeto #editor) */
+#editor {
+    font-family: Consolas, "Fira Code", monospace;
+    font-size: 14px;
+    background: #151515;        /* sobreescribe Base si quieres un poco más oscuro */
+    color: #e8e8e8;             /* texto */
+    selection-background-color: #3d6cff;
+    selection-color: #ffffff;
+    border: 1px solid #2a2a2a;
+    border-radius: 6px;
+    padding: 6px;
+}
+
+/* Paneles inferiores por objectName */
+#panelMd, #panelArchivo {
+    background: transparent;    /* deja ver el color del Window */
+}
+
+/* Botones: estilo básico con estados */
+QPushButton {
+    background: #2a2a2a;
+    color: #eaeaea;
+    border: 1px solid #404040;
+    border-radius: 6px;
+    padding: 6px 10px;
+}
+QPushButton:hover {
+    background: #333333;
+}
+QPushButton:pressed {
+    background: #2c3e50;
+}
+QPushButton:disabled {
+    color: #8a8a8a;
+    border-color: #333333;
+}
+
+/* QComboBox con su flecha y desplegable */
+QComboBox {
+    background: #2a2a2a;
+    color: #eaeaea;
+    border: 1px solid #404040;
+    border-radius: 6px;
+    padding: 4px 8px;
+}
+QComboBox::drop-down {
+    border-left: 1px solid #404040;
+    width: 22px;
+}
+QComboBox QAbstractItemView {
+    background: #202020;    /* lista desplegable */
+    color: #eaeaea;
+    selection-background-color: #3d6cff;
+    selection-color: #ffffff;
+    border: 1px solid #404040;
+}
