@@ -4,3 +4,6 @@
 */*/*/venv/
 Python/*/venv/
 Python/*/*/venv/
+Python/*/__pycache__/
+Python/*/*/__pycache__/
+Python/*/*/*/__pycache__/
