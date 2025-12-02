@@ -1,0 +1,163 @@
+Lo que pide el PDF (resumen guiado)
+Barra de menú con Archivo/Ayuda y esas tres opciones específicas. (p.1)
+Área central con la imagen “a tamaño grande”, respetando aspecto y fondo oscuro neutro. (p.2)
+Carrusel de miniaturas inmediatamente debajo del área central; la miniatura seleccionada destacada. (p.2)
+Barra de estado al pie con el nombre de archivo de la imagen mostrada. (p.2)
+Modal “Acerca de…” sencillo/centrado. (p.1)
+Mejora futura: metadatos en modal/estado, navegación con flechas, zoom/pan, fullscreen, ordenar miniaturas, detección de duplicados por suma de verificación. (p.3)
+Hitos (fase visual primero, luego lógica; minimalista)
+H1 — Maquetación en Designer (solo UI, sin lógica)
+Archivos .ui a crear con pyside6-designer:
+main_window.ui → QMainWindow con:
+MenuBar (Archivo: Abrir carpeta, Imprimir; Ayuda: Acerca de…).
+CentralWidget: QWidget con QVBoxLayout (márgenes 8, spacing 8):
+Área de visualización (arriba, stretch 5): un QLabel grande llamado lblMain, alineado al centro, fondo oscuro (StyleSheet), scaledContents = false (respetar aspecto; ya escalaremos por código), texto placeholder “(Sin imagen)”.
+Carrusel (en medio, stretch 2): QListWidget en modo IconMode (propiedades: viewMode=IconMode, flow=LeftToRight, resizeMode=Adjust, movement=Static, iconSize=128×128, spacing=8, selección SingleSelection), nombre listThumbs.
+(Opcional) Un QFrame fino separador entre ambos.
+StatusBar (abajo): vacío; lo rellenaremos con el nombre de archivo actual.
+about_dialog.ui → QDialog simple, centrable, con un QVBoxLayout: título, texto de créditos, botón “Cerrar”.
+
+Por qué QListWidget para el carrusel: es la opción más simple para thumbnails con selección y resaltado sin escribir widgets personalizados.
+
+H2 — Cableado mínimo (slots y señales, sin lógica pesada)
+
+En Python (código breve) solo creamos la clase app:
+
+Cargar main_window.ui (con pyside6-uic → Ui_MainWindow + setupUi(self) o con QUiLoader si prefieres runtime).
+
+Conectar acciones de menú a stubs:
+
+actAbrirCarpeta.triggered → on_open_folder()
+
+actImprimirImagen.triggered → on_print_image()
+
+actAcercaDe.triggered → on_about()
+
+Conectar carrusel:
+
+listThumbs.currentRowChanged → on_thumbnail_changed(row)
+
+Preparar atajos de teclado (opcional ahora): flechas izquierda/derecha para navegar.
+
+H3 — Simulación de datos (cargar imágenes desde carpeta)
+
+“Abrir carpeta”: escanear extensiones soportadas, crear lista de rutas, generar QIcon/QPixmap escalados para QListWidgetItems del carrusel (icono + setData(UserRole, ruta)), seleccionar el primero.
+
+Mostrar en el área central la imagen seleccionada, escalada manteniendo aspecto (ver pseudocódigo más abajo).
+
+Actualizar status bar con basename(ruta).
+
+H4 — Modal “Acerca de…” y stub de imprimir
+
+Cargar about_dialog.ui, centrarlo respecto a la ventana, mostrar modal (exec()).
+
+Imprimir: abrir QPrintDialog (de PySide6.QtPrintSupport) y mostrarlo; no implementamos el render aún (stub visual).
+
+H5 — Pulidos visuales (opcional)
+
+Resaltar la miniatura seleccionada (estilo de selección del QListWidget por QSS).
+
+Fondo neutro oscuro del lblMain y del carrusel, para dar jerarquía visual.
+
+Preparar “hooks” para mejoras: metadatos, teclas, zoom/pan, fullscreen, ordenar por nombre/fecha/tamaño. (Del PDF, p.3).
+
+Diseño y Maquetación de una Gal…
+
+Arquitectura limpia (mínima, sin sobreingeniería)
+
+Capa UI: las .ui + una clase MainWindow que solo orquesta señales y llama a helpers.
+
+Capa servicios/helpers:
+
+image_loader.py: funciones puras para listar imágenes de una carpeta y crear thumbnails.
+
+viewer.py: helper para escalar y fijar el pixmap en lblMain manteniendo aspecto.
+
+Modelo in-memory ultra simple:
+
+self._imagenes: list[Path]
+
+self._index_actual: int
+
+Nada de EventBus ni controladores complejos. Señales Qt directo.
+
+Firmas y pseudocódigo (flujo de principio a fin)
+Firmas mínimas (Python)
+# main_window.py (clase que envuelve el .ui)
+class MainWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self._imagenes: list[Path] = []
+        self._index_actual: int = -1
+        self._setup_ui()               # cargar .ui y cachear widgets
+        self._connect_signals()        # acciones de menú y lista
+
+    # === slots ===
+    def on_open_folder(self) -> None: ...
+    def on_print_image(self) -> None: ...
+    def on_about(self) -> None: ...
+    def on_thumbnail_changed(self, row: int) -> None: ...
+
+    # === helpers ===
+    def _load_folder(self, dirpath: Path) -> None: ...
+    def _populate_thumbnails(self) -> None: ...
+    def _show_image(self, index: int) -> None: ...
+    def _update_status(self) -> None: ...
+
+Pseudocódigo (flujo)
+App start
+ └─ crea MainWindow
+     └─ setup_ui(): carga main_window.ui
+     └─ connect_signals():
+          Archivo→Abrir carpeta → on_open_folder()
+          Archivo→Imprimir imagen → on_print_image()
+          Ayuda→Acerca de → on_about()
+          listThumbs.currentRowChanged → on_thumbnail_changed(row)
+
+on_open_folder():
+ ├─ dir = QFileDialog.getExistingDirectory(...)
+ ├─ if dir vacío: return
+ ├─ self._imagenes = listar_imagenes(dir, exts={"png","jpg","jpeg"})
+ ├─ if vacío: QMessageBox.information("Sin imágenes"); clear UI; return
+ ├─ self._populate_thumbnails()
+ └─ self._show_image(0)
+
+_populate_thumbnails():
+ ├─ listThumbs.clear()
+ ├─ for ruta in self._imagenes:
+ │     icon = crear_icono_thumbnail(ruta, size=128)
+ │     item = QListWidgetItem(icon, ruta.name)
+ │     item.setData(Qt.UserRole, str(ruta))
+ │     listThumbs.addItem(item)
+ └─ listThumbs.setCurrentRow(0)
+
+on_thumbnail_changed(row):
+ └─ self._show_image(row)
+
+_show_image(index):
+ ├─ if index fuera de rango: return
+ ├─ ruta = self._imagenes[index]
+ ├─ pix = QPixmap(str(ruta))
+ ├─ # escalar manteniendo aspecto para encajar en lblMain
+ ├─ target = lblMain.size() - paddings
+ ├─ pix_scaled = pix.scaled(target, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+ ├─ lblMain.setPixmap(pix_scaled)
+ ├─ lblMain.setAlignment(Qt.AlignCenter)
+ ├─ self._index_actual = index
+ └─ self._update_status()
+
+_update_status():
+ ├─ ruta = self._imagenes[self._index_actual]
+ └─ statusBar.showMessage(ruta.name)
+
+on_about():
+ ├─ dlg = cargar about_dialog.ui como QDialog
+ └─ dlg.exec()   # modal centrado
+
+on_print_image():         # stub visual
+ ├─ if no imagen: return
+ ├─ dlg = QPrintDialog(self)
+ └─ dlg.exec()
+
+
+(Más adelante, si quieres zoom/pan de verdad, pasamos el área central a QGraphicsView con fitInView(); por ahora QLabel + scaled pixmap es lo más simple y cumple el PDF).

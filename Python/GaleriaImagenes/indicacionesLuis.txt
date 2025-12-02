@@ -1,0 +1,32 @@
+Documento contiene pautas generadas por IA para hacer una galería de imágenes.
+Nos da añadidos opcionales, la imagen es una referencia, no es obligatorio ajustarse a ella.
+Tenemos un menuBar con opciones.
+Visualización imagen principal.
+Carousel de imágenes.
+
+Sección requisitos:
+Seguir el documento.
+Lo de que sea para windows es opcional, se puede hacer multiplataforma.
+Requerimientos en el documento para el resto de requisitos.
+
+Sección elementos:
+La posición del carousel es de elección propia.
+La vista previa igual.
+De nuevo, seguir el documento para el resto, teniendo en cuenta que hay libertad creativa.
+
+Sección tareas a realizar:
+punto simulación de datos, vamos a simular las imágenes en una carpeta imágenes haciendo pixmaps a mano, más adelante los cargaremos de una base de datos, pero cuando todo esté terminado.
+
+Si te das cuenta no tiene que funcionar como tal para las tareas a realizar, pero estaría bien para este punto.
+
+Sección de posibles mejoras/ampliaciones del proyecto:
+Hay recursos para el tema de los modales, estaría bien usarlos.
+Están los datos del modal especificados en el documento.
+Seguir también esta sección del documento, e incluir estas partes en cada sección donde proceda.
+En la parte de la barra de estado, se podría usar los metadatos que están en el modal?
+Tema imágenes duplicadas, por suma de verificación por favor.
+Toda esta sección cuando hayamos terminado todo lo anterior, excepto el tema de traer imágenes de base de datos.
+
+Lo que hay en el documento es lo que ha generado la IA y tiene más o menos lo que él quiere, pero no exáctamente lo que él quiere.
+Primero la parte visual, luego haremos la parte lógica cuando todo esté montado.
+Usaremos pyside6-designer para generar las vistas.
