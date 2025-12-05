@@ -6,9 +6,10 @@ from PySide6.QtCore import QFile, QIODevice
 from PySide6.QtGui import QAction
 from PySide6.QtPrintSupport import QPrintDialog
 from PySide6.QtUiTools import QUiLoader
-from PySide6.QtWidgets import QMainWindow, QLabel, QListWidget, QWidget, QDialog, QDialogButtonBox
+from PySide6.QtWidgets import QMainWindow, QLabel, QListWidget, QWidget, QDialog, QDialogButtonBox, QMessageBox
 
-from datos.DatosGaleria import UI_DIR
+from datos.datos_galeria import UI_DIR, EXTENSIONES
+
 
 class GaleriaApp:
     """
@@ -56,7 +57,7 @@ class GaleriaApp:
             "accion_acerca_de": self.accion_acerca_de
         }.items():
             if objeto is None:
-                raise RuntimeError(f"No se ha encontrado '{nombre}' en ventana_principal.ui")
+                QMessageBox.warning(self.window, "Error", f"No se ha encontrado '{nombre}' en ventana_principal.ui")
 
     def _load_ui(self, path: Path) -> QDialog | QMainWindow:
         archivo: QFile = QFile(str(path))
@@ -76,6 +77,25 @@ class GaleriaApp:
         self.list_thumbnails.setMovement(QListWidget.Movement.Static)
         self.list_thumbnails.setResizeMode(QListWidget.ResizeMode.Adjust)
         self.list_thumbnails.setSelectionMode(QListWidget.SelectionMode.SingleSelection)
+
+    def _listar_carpeta_imagenes(self, directorio: Path) -> list[Path]:
+        archivos: list[Path] = []
+        try:
+            for path in sorted(directorio.iterdir()):
+                if path.is_file() and path.suffix.lower() in EXTENSIONES:
+                    archivos.append(path)
+        except Exception as e:
+            QMessageBox.warning(self.window, "Error", f"No se pudo leer la carpeta: \n{e}")
+        return archivos
+
+    def _poblar_tumbnails(self) -> None:
+        pass
+
+    def _mostrar_imagen(self, indice: int) -> None:
+        pass
+
+    def _actualizar_estado(self) -> None:
+        pass
 
     def on_abrir_carpeta(self) -> None:
         self.window.statusBar().showMessage("Abrir carpeta ...", 2000)
