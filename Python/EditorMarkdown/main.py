@@ -2,6 +2,7 @@ from PySide6.QtWidgets import QApplication, QStyleFactory
 import sys
 from pathlib import Path
 
+import ui
 from ui.main_window import MainWindow
 from ui.styles.DarkPalette import DarkPalette
 
@@ -14,6 +15,8 @@ def main() -> None:
 	window = MainWindow()
 	window.show()
 	sys.exit(app.exec())
+    string1:str = ""
+
 
 if __name__ == "__main__":
 	main()
