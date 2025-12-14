@@ -2,12 +2,12 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from PySide6.QtCore import QFile, QIODevice
-from PySide6.QtGui import QAction, QPixmap, QIcon
+from PySide6.QtCore import QFile, QIODevice, QSize
+from PySide6.QtGui import QAction, QPixmap, QIcon, QImage, Qt
 from PySide6.QtPrintSupport import QPrintDialog
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtWidgets import (QMainWindow, QLabel, QListWidget, QWidget,
-                               QDialog, QDialogButtonBox, QMessageBox)
+                               QDialog, QDialogButtonBox, QMessageBox, QFileDialog, QListWidgetItem)
 
 from datos.datos_galeria import UI_DIR, EXTENSIONES
 
@@ -22,13 +22,18 @@ class GaleriaApp:
         Genera una ventana con los elementos que hay en los ficheros .ui del
         proyecto, los cuales se han generado usando QtWidgetDesigner.
         """
-        self.loader = QUiLoader()
         self.window: QMainWindow = self._load_ui(
             UI_DIR / "ventana_principal.ui"
         )
         self.window.setWindowTitle("Galería Imagenes Mario Asenjo 2 DAM")
+        self._configurar_ventana()
         self.imagenes: list[Path] = []
         self._indice_actual: int = -1
+        self._verificar_importaciones()
+        self._configurar_carousel()
+        self._conectar_signals()
+
+    def _configurar_ventana(self) -> None:
         self.label_main: QLabel | None = self.window.findChild(
             QLabel, "lblMain"
         )
@@ -47,9 +52,23 @@ class GaleriaApp:
         self.accion_acerca_de: QAction | None = self.window.findChild(
             QAction, "actionAcerca_de"
         )
-        self._verificar_importaciones()
-        self._configurar_carousel()
-        self._conectar_signals()
+
+    def _load_ui(self, path: Path) -> QDialog | QMainWindow:
+        """
+        Carga desde el path, el fichero ui indicado, para devolver una
+        ventana, o un dialogo generado con el designer.
+        :param path: Ruta al fichero .ui que contiene el elemento.
+        :return:
+        """
+        loader = QUiLoader()
+        archivo: QFile = QFile(str(path))
+        try:
+            widget: QMainWindow | QWidget = loader.load(archivo, None)
+        except FileNotFoundError:
+            raise RuntimeError(f"No se pudo abrir el .ui -> {path}")
+        if widget is None:
+            raise RuntimeError("QUiLoader.load() ha devuelto None!!")
+        return widget
 
     def _verificar_importaciones(self) -> None:
         """
@@ -71,22 +90,6 @@ class GaleriaApp:
                     f"No se ha encontrado '{nombre}' en ventana_principal.ui"
                 )
 
-    def _load_ui(self, path: Path) -> QDialog | QMainWindow:
-        """
-        Carga desde el path, el fichero ui indicado, para devolver una
-        ventana, o un dialogo generado con el designer.
-        :param path: Ruta al fichero .ui que contiene el elemento.
-        :return:
-        """
-        archivo: QFile = QFile(str(path))
-        try:
-            widget: QMainWindow | QWidget = self.loader.load(archivo, None)
-        except FileNotFoundError:
-            raise RuntimeError(f"No se pudo abrir el .ui -> {path}")
-        if widget is None:
-            raise RuntimeError("QUiLoader.load() ha devuelto None!!")
-        return widget
-
     def _configurar_carousel(self) -> None:
         """
         Como el designer solo establece la disposición de los elementos, aquí
@@ -99,6 +102,19 @@ class GaleriaApp:
         self.list_thumbnails.setResizeMode(QListWidget.ResizeMode.Adjust)
         self.list_thumbnails.setSelectionMode(
             QListWidget.SelectionMode.SingleSelection
+        )
+
+    def _conectar_signals(self) -> None:
+        """
+        Conecta todas las señales con sus slots / listeners correspondientes.
+        :return:
+        """
+        self.accion_abrir_carpeta.triggered.connect(self.on_abrir_carpeta)
+        self.accion_imprimir.triggered.connect(self.on_imprimir_imagen)
+        self.accion_salir.triggered.connect(self.window.close)
+        self.accion_acerca_de.triggered.connect(self.on_acerca_de)
+        self.list_thumbnails.currentRowChanged.connect(
+            self.on_cambio_de_tumbnail
         )
 
     def _listar_carpeta_imagenes(self, directorio: Path) -> list[Path]:
@@ -120,21 +136,70 @@ class GaleriaApp:
                 and AR.suffix.lower() in EXTENSIONES]
 
     def _poblar_tumbnails(self) -> None:
-        pass
+        self.list_thumbnails.clear()
+        rutas: list[Path] = []
+        for ruta in self.imagenes:
+            imagen: QImage = QImage(str(ruta))
+            if imagen.isNull(): # imagen no legible, probamos con 1.png vacío.
+                continue
+            pixmap: QPixmap = QPixmap.fromImage(imagen)
+            icono: QIcon = QIcon(pixmap.scaled(128, 128, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
+            item: QListWidgetItem = QListWidgetItem(icono, ruta.name)
+            item.setData(Qt.ItemDataRole.UserRole, str(ruta))
+            self.list_thumbnails.addItem(item)
+            rutas.append(ruta)
+        self.imagenes = rutas # dejamos en imagenes solo las que hayamos conseguido cargar.
 
     def _mostrar_imagen(self, indice: int) -> None:
-        pass
+        if not (0 <= indice < len(self.imagenes)):
+            return
+        ruta: Path =  self.imagenes[indice]
+        pixmap: QPixmap = QPixmap(str(ruta))
+        if pixmap.isNull():
+            self.window.statusBar().showMessage(f"No se pudo cargar: {ruta.name}", 2000)
+            return
+        tamaño = self.label_main.contentsRect().size()
+        if (tamaño.isEmpty()):
+            cw: QWidget = self.window.centralWidget()
+            tamaño = (cw.size() if cw is not None else self.window.size())
+            if tamaño.isEmpty():
+                target = QSize(640, 480)
+        pixmap_escalado: QPixmap = pixmap.scaled(tamaño, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+        self.label_main.setPixmap(pixmap_escalado)
+        self.label_main.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self._indice_actual = indice
+        self._actualizar_estado()
+
 
     def _actualizar_estado(self) -> None:
-        pass
+        if 0 <= self._indice_actual < len(self.imagenes):
+            self.window.statusBar().showMessage(self.imagenes[self._indice_actual].name)
+        else:
+            self.window.statusBar().clearMessage()
 
     def on_abrir_carpeta(self) -> None:
         """
-        Slot / Listener para cuando se pulsa abrir carpeta. De momento solo
-        muestra mensaje en el statusBar.
+        Slot / Listener para cuando se pulsa abrir carpeta.
+        MUestra un QFileDialog para seleccionar carpeta con imagenes.
+        Pobla los thumbnails y muestra la primera imagen.
         :return:
         """
-        self.window.statusBar().showMessage("Abrir carpeta ...", 2000)
+        ruta = QFileDialog.getExistingDirectory(self.window, "Selecciona una carpeta con imagenes...")
+        if not ruta:
+            self.window.statusBar().showMessage("CANCELADO", 1500)
+            return
+        directorio: Path = Path(ruta)
+        self.imagenes: list[Path] = self._listar_carpeta_imagenes(directorio)
+        if not self.imagenes:
+            QMessageBox.information(self.window, "Sin imagenes", "No se encontraron PNG/JPEG/JPG en la carpeta.")
+            self.list_thumbnails.clear()
+            self.label_main.setPixmap(QPixmap())
+            self.window.statusBar().clearMessage()
+            self._indice_actual = -1
+            return
+        self._poblar_tumbnails()
+        self.list_thumbnails.setCurrentRow(0)
+        self._mostrar_imagen(0)
 
     def on_imprimir_imagen(self) -> None:
         """
@@ -183,19 +248,4 @@ class GaleriaApp:
         """
         if row < 0:
             return
-        self.window.statusBar().showMessage(
-            f"Seleccionaste miniatura {row}", 1500
-        )
-
-    def _conectar_signals(self) -> None:
-        """
-        Conecta todas las señales con sus slots / listeners correspondientes.
-        :return:
-        """
-        self.accion_abrir_carpeta.triggered.connect(self.on_abrir_carpeta)
-        self.accion_imprimir.triggered.connect(self.on_imprimir_imagen)
-        self.accion_salir.triggered.connect(self.window.close)
-        self.accion_acerca_de.triggered.connect(self.on_acerca_de)
-        self.list_thumbnails.currentRowChanged.connect(
-            self.on_cambio_de_tumbnail
-        )
+        self._mostrar_imagen(row)

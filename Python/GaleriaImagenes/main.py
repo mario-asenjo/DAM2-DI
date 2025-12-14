@@ -5,8 +5,8 @@ from app.galeria_app import GaleriaApp
 
 def main() -> None:
     """
-    Punto de entrada del programa, inicia la ventana con el carousel,
-    la principal y la lanza.
+    Punto de entrada del programa, inicia la ventana con el carousel y la
+    lanza.
     :return:
     """
     app = QApplication(sys.argv)

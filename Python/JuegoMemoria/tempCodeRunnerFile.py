@@ -1,0 +1,1 @@
+window.set_central_view(tablero)   # ← una sola vez
