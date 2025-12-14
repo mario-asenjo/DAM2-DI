@@ -15,7 +15,6 @@ def main() -> None:
 	window = MainWindow()
 	window.show()
 	sys.exit(app.exec())
-    string1:str = ""
 
 
 if __name__ == "__main__":

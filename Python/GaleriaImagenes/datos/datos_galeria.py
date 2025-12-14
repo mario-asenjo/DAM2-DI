@@ -1,3 +1,6 @@
+"""
+Documento de datos para la configuración de la galería.
+"""
 from pathlib import Path
 
 APP_DIR: Path = Path(__file__).resolve().parent.parent
